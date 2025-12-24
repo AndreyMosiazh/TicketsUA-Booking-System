@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # --- СЕРВІС 1: ВАШ САЙТ (PHP + Apache) ---
+  website:
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_NAME=OnlineBooking
+      - DB_USER=root
+      - DB_PASSWORD=root
+
+  # --- СЕРВІС 2: БАЗА ДАНИХ (MySQL) ---
+  db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_DATABASE: OnlineBooking
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - db_data:/var/lib/mysql     
+      - ./create_database.sql:/docker-entrypoint-initdb.d/1_create.sql
+      - ./insert_database.sql:/docker-entrypoint-initdb.d/2_insert.sql
+
+  # --- СЕРВІС 3: phpMyAdmin ---
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: root
+    depends_on:
+      - db
+
+volumes:
+  db_data:
